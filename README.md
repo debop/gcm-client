@@ -3,6 +3,12 @@ gcm-client
 
 GCM (Goolge Cloud Message) Client
 
+
+##### Change logs
+
+1.0.0 First release
+
+
 ##### Usage
 
 you needs server api key, device id
