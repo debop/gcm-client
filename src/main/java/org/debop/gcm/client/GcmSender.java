@@ -16,7 +16,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * GCM Message sender
@@ -29,21 +28,48 @@ public class GcmSender {
 
     public static final String GCM_SERVER_URL = "https://android.googleapis.com/gcm/send";
 
-    private final URI gcmServerUri;
+    private URI gcmServerUri;
     private final String serverApiKey;
     private final HttpClient httpClient;
 
-    public GcmSender(final String serverApiKey) throws URISyntaxException {
+    /**
+     * create GcmSender instance.
+     *
+     * @param serverApiKey server api key
+     */
+    public GcmSender(final String serverApiKey) {
         this.serverApiKey = serverApiKey;
-        this.gcmServerUri = new URI(GCM_SERVER_URL);
+
+        try {
+            this.gcmServerUri = new URI(GCM_SERVER_URL);
+        } catch (URISyntaxException ignored) {}
+
         this.httpClient = new HttpClient();
     }
 
-    public int send(final String registrationId, GcmMessage msg, int retry) {
-        assert (registrationId != null && !registrationId.isEmpty());
-        assert (msg != null);
+    /**
+     * create GcmSender instance.
+     *
+     * @param serverApiKey server api key
+     * @param serverUri    server uri
+     */
+    public GcmSender(final String serverApiKey, final URI serverUri) {
+        this.serverApiKey = serverApiKey;
+        this.gcmServerUri = serverUri;
+        this.httpClient = new HttpClient();
+    }
 
-        msg.getRegistrationIds().add(registrationId);
+
+    /**
+     * Send message to request push message for android
+     *
+     * @param msg   request message
+     * @param retry retry number if fail
+     * @return Http status code. if 200 sending is success, else fail
+     */
+    public int send(final GcmMessage msg, int retry) {
+        assert (msg != null);
+        assert (msg.getRegistrationIds().size() > 0);
 
         HttpPost post;
         try {
@@ -62,47 +88,14 @@ public class GcmSender {
                 response = httpClient.post(post);
                 return response.getStatusLine().getStatusCode();
             } catch (Exception e) {
-                log.debug("fail to request", e);
-                tryAgain = true;
+                log.warn("Fail to request push message... but retry", e);
             }
-            tryAgain = tryAgain && (attempts <= retry);
+            tryAgain = (attempts <= retry);
 
         } while (tryAgain);
 
         throw new RuntimeException("could not send message after #" + attempts + " attempts");
     }
-
-    public int send(final Set<String> registrationIds, GcmMessage msg, int retry) {
-        assert (registrationIds != null && registrationIds.size() > 0);
-        assert (msg != null);
-
-        msg.getRegistrationIds().addAll(registrationIds);
-        HttpPost post;
-        try {
-            post = buildHttpPost(serverApiKey, msg);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        HttpResponse response;
-        boolean tryAgain;
-        int attempts = 0;
-
-        do {
-            attempts++;
-
-            try {
-                response = httpClient.post(post);
-                return response.getStatusLine().getStatusCode();
-            } catch (Exception e) {
-                tryAgain = true;
-            }
-            tryAgain = tryAgain && (attempts <= retry);
-
-        } while (tryAgain);
-
-        throw new RuntimeException("could not send message after #" + attempts + " attempts");
-    }
-
 
     private HttpPost buildHttpPost(String apiKey, GcmMessage msg) throws JsonProcessingException {
         HttpPost post = new HttpPost(this.gcmServerUri);
