@@ -57,10 +57,26 @@ public class GcmMessage implements Serializable {
      * GCM Message Builder
      */
     public static class Builder {
+        private Set<String> registrationIds = new HashSet<String>();
         private String collapseKey;
         private Boolean delayWhileIdle;
         private Integer timeToLive;
         private Map<String, String> data = new HashMap<String, String>();
+
+        public Builder addRegistration(final String registrationId) {
+            this.registrationIds.add(registrationId);
+            return this;
+        }
+
+        public Builder addRegistrations(final String... registrationIds) {
+            Collections.addAll(this.registrationIds, registrationIds);
+            return this;
+        }
+
+        public Builder addRegistrations(final Collection<? extends String> registrationIds) {
+            this.registrationIds.addAll(registrationIds);
+            return this;
+        }
 
         public Builder setCollapseKey(String value) {
             this.collapseKey = value;
@@ -89,6 +105,7 @@ public class GcmMessage implements Serializable {
 
         public GcmMessage build() {
             GcmMessage msg = new GcmMessage();
+            msg.registrationIds.addAll(this.registrationIds);
             msg.collapseKey = this.collapseKey;
             msg.delayWhileIdle = this.delayWhileIdle;
             msg.timeToLive = this.timeToLive;

@@ -3,8 +3,7 @@ package org.debop.gcm.client;
 import org.debop.gcm.message.GcmMessage;
 import org.junit.Test;
 
-import java.util.HashSet;
-import java.util.Set;
+import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * org.debop.gcm.client.GcmSenderTest
@@ -27,12 +26,14 @@ public class GcmSenderTest {
         GcmSender sender = new GcmSender(SERVER_API_KEY);
         GcmMessage msg =
                 new GcmMessage.Builder()
+                        .addRegistration(DEVICE_ID_LG)
                         .setTimeToLive(60)
                         .addData("body", "동해물과 백두산이")
                         .addData("eventKey", "eventKey1")
                         .build();
 
-        int result = sender.send(DEVICE_ID_LG, msg, 3);
+        int result = sender.send(msg, 3);
+        assertThat(result).isEqualTo(200);
     }
 
     @Test
@@ -40,15 +41,13 @@ public class GcmSenderTest {
         GcmSender sender = new GcmSender(SERVER_API_KEY);
         GcmMessage msg =
                 new GcmMessage.Builder()
+                        .addRegistrations(DEVICE_ID_PANTEC, DEVICE_ID_PANTEC)
                         .setTimeToLive(60)
                         .addData("body", "동해물과 백두산이")
                         .addData("eventKey", "eventKey1")
                         .build();
 
-        Set<String> registrationIds = new HashSet<String>();
-        registrationIds.add(DEVICE_ID_LG);
-        registrationIds.add(DEVICE_ID_PANTEC);
-
-        int result = sender.send(registrationIds, msg, 3);
+        int result = sender.send(msg, 3);
+        assertThat(result).isEqualTo(200);
     }
 }
