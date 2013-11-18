@@ -67,7 +67,7 @@ public class GcmSender {
      * @param retry retry number if fail
      * @return Http status code. if 200 sending is success, else fail
      */
-    public int send(final GcmMessage msg, int retry) {
+    public int send(final GcmMessage msg, final int retry) {
         assert (msg != null);
         assert (msg.getRegistrationIds().size() > 0);
 
@@ -77,7 +77,6 @@ public class GcmSender {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        HttpResponse response;
         boolean tryAgain;
         int attempts = 0;
 
@@ -85,7 +84,7 @@ public class GcmSender {
             attempts++;
 
             try {
-                response = httpClient.post(post);
+                HttpResponse response = httpClient.post(post);
                 return response.getStatusLine().getStatusCode();
             } catch (Exception e) {
                 log.warn("Fail to request push message... but retry", e);

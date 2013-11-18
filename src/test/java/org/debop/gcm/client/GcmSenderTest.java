@@ -50,4 +50,5 @@ public class GcmSenderTest {
         int result = sender.send(msg, 3);
         assertThat(result).isEqualTo(200);
     }
+
 }
